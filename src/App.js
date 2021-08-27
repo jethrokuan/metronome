@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import {
+  AspectRatio,
   ChakraProvider,
+  Button,
+  Stack,
   IconButton,
   Box,
   Grid,
   Text,
   VStack,
   Container,
-  Select,
+  Radio,
+  RadioGroup,
   theme,
 } from '@chakra-ui/react';
 import { ColorModeSwitcher } from './ColorModeSwitcher';
@@ -33,7 +37,7 @@ const timerWorker = new Worker(workerScript);
 
 function App() {
   const [tempo, setTempo] = useState(60);
-  const [noteResolution, setNoteResolution] = useState(4);
+  const [noteResolution, setNoteResolution] = useState("4");
   const [isPlaying, setIsPlaying] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
 
@@ -71,8 +75,10 @@ function App() {
     // push the note on the queue, even if we're not playing.
     notesInQueue.push({ note: beatNumber, time: time });
 
-    if ((noteResolution === 8) && (beatNumber % 2 !== 0)) return; // we're not playing non-8th 16th notes
-    if ((noteResolution === 4) && (beatNumber % 4 !== 0)) return; // we're not playing non-quarter 8th notes
+    const nr = parseInt(noteResolution);
+
+    if ((nr === 8) && (beatNumber % 2 !== 0)) return; // we're not playing non-8th 16th notes
+    if ((nr === 4) && (beatNumber % 4 !== 0)) return; // we're not playing non-quarter 8th notes
 
     // create an oscillator
     var osc = audioContext.createOscillator();
@@ -84,7 +90,6 @@ function App() {
     else                        // other 16th notes = low pitch
       osc.frequency.value = 220.0;
 
-    console.log(noteResolution, beatNumber);
     osc.start(time);
     osc.stop(time + noteLength);
   }
@@ -123,33 +128,49 @@ function App() {
     <ChakraProvider theme={theme}>
       <Container>
         <Box textAlign="center" fontSize="xl">
-          <Grid minH="100vh" p={3}>
+          <Grid minH="100vh" p={2}>
             <ColorModeSwitcher justifySelf="flex-end" />
-            <VStack spacing={8}>
-              <IconButton
-                onClick={play}
-                color="tomato"
-                aria-label="Play/Pause"
-                h={400}
-                w={400}
-                fontSize={500}
-                variant="ghost"
-                icon={isPlaying ? <MdPauseCircleFilled /> : <MdPlayCircleFilled />}
-              />
+            <VStack spacing={4}>
+              <AspectRatio w="50%" ratio={4 / 4}>
+                <IconButton
+                  onClick={play}
+                  color="red"
+                  aria-label="Play/Pause"
+                  fontSize={500}
+                  variant="ghost"
+                  icon={isPlaying ? <MdPauseCircleFilled /> : <MdPlayCircleFilled />}
+                />
+              </AspectRatio>
               <Text fontSize="xl">{tempo} bpm</Text>
-              <Slider aria-label="slider-ex-4" defaultValue={tempo} min={0} max={250} onChange={(newTempo) => setTempo(newTempo)}>
-                <SliderTrack bg="red.100">
-                  <SliderFilledTrack bg="tomato" />
+              <Slider color="red" value={tempo} min={0} max={250} onChange={(newTempo) => setTempo(newTempo)}>
+                <SliderTrack color="red">
+                  <SliderFilledTrack bg="red" />
                 </SliderTrack>
                 <SliderThumb boxSize={6}>
-                  <Box color="tomato" as={MdEqualizer} />
+                  <Box color="red" as={MdEqualizer} />
                 </SliderThumb>
               </Slider>
-              <Select onChange={(e) => { setNoteResolution(parseInt(e.target.value)); }}>
-                <option value={4}>4</option>
-                <option value={8}>8</option>
-                <option value={16}>16</option>
-              </Select>
+              <Stack direction="row" spacing={4} align="center">
+                <Button variant="outline" onClick={() => setTempo(tempo - 5)}>
+                  -5
+                </Button>
+                <Button variant="outline" onClick={() => setTempo(tempo - 1)}>
+                  -1
+                </Button>
+                <Button variant="outline" onClick={() => setTempo(tempo + 1)}>
+                  +1
+                </Button>
+                <Button variant="outline" onClick={() => setTempo(tempo + 5)}>
+                  +5
+                </Button>
+              </Stack>
+              <RadioGroup onChange={setNoteResolution} value={noteResolution}>
+                <Stack direction="row">
+                  <Radio colorScheme="red" value="4">4ths</Radio>
+                  <Radio colorScheme="red" value="8">8ths</Radio>
+                  <Radio colorScheme="red" value="16">16ths</Radio>
+                </Stack>
+              </RadioGroup>
             </VStack>
           </Grid >
         </Box >
